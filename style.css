@@ -5,15 +5,48 @@
     box-sizing: border-box;
 }
 
+/* 根变量定义（方便统一修改颜色） */
+:root {
+    --bg-primary: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    --bg-card: #ffffff;
+    --text-primary: #2c3e50;
+    --text-secondary: #7f8c8d;
+    --text-footer: #95a5a6;
+    --accent-color: #3498db;
+    --accent-hover: #2980b9;
+    --shadow-light: rgba(0, 0, 0, 0.05);
+    --shadow-medium: rgba(0, 0, 0, 0.15);
+    --shadow-accent: rgba(52, 152, 219, 0.2);
+    --avatar-border: #ffffff;
+}
+
+/* 深色模式变量（自动适配系统深色主题） */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: linear-gradient(135deg, #1a1c20 0%, #2d3436 100%);
+        --bg-card: #2d3436;
+        --text-primary: #ecf0f1;
+        --text-secondary: #b2bec3;
+        --text-footer: #b2bec3;
+        --accent-color: #74b9ff;
+        --accent-hover: #0984e3;
+        --shadow-light: rgba(0, 0, 0, 0.2);
+        --shadow-medium: rgba(0, 0, 0, 0.4);
+        --shadow-accent: rgba(116, 185, 255, 0.2);
+        --avatar-border: #2d3436;
+    }
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    color: #333;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* 容器居中 */
@@ -31,20 +64,21 @@ body {
     height: 150px;
     border-radius: 50%;
     object-fit: cover;
-    border: 5px solid #fff;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border: 5px solid var(--avatar-border);
+    box-shadow: 0 8px 25px var(--shadow-medium);
     margin-bottom: 20px;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .avatar:hover {
     transform: scale(1.05);
+    box-shadow: 0 12px 30px var(--shadow-medium);
 }
 
 /* 标题样式 */
 h1 {
     font-size: 2.5rem;
-    color: #2c3e50;
+    color: var(--text-primary);
     margin-bottom: 10px;
     font-weight: 700;
     letter-spacing: 1px;
@@ -52,7 +86,7 @@ h1 {
 
 .bio {
     font-size: 1.2rem;
-    color: #7f8c8d;
+    color: var(--text-secondary);
     margin-bottom: 40px;
     font-weight: 400;
     opacity: 0.9;
@@ -68,29 +102,56 @@ h1 {
 .link-item {
     display: block;
     padding: 15px 20px;
-    background-color: #fff;
-    color: #3498db;
+    background-color: var(--bg-card);
+    color: var(--accent-color);
     text-decoration: none;
     border-radius: 12px;
     font-size: 1.1rem;
     font-weight: 500;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px var(--shadow-light);
     transition: all 0.3s ease;
     border: 2px solid transparent;
 }
 
 .link-item:hover {
-    background-color: #3498db;
-    color: #fff;
+    background-color: var(--accent-color);
+    color: #ffffff;
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
-    border-color: #2980b9;
+    box-shadow: 0 8px 25px var(--shadow-accent);
+    border-color: var(--accent-hover);
 }
 
 /* 页脚样式 */
 .footer {
     margin-top: 60px;
-    color: #95a5a6;
+    color: var(--text-footer);
     font-size: 0.9rem;
     opacity: 0.8;
+}
+
+/* 深色模式切换按钮（可选，添加后可手动切换） */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--bg-card);
+    color: var(--accent-color);
+    border: none;
+    box-shadow: 0 4px 15px var(--shadow-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.theme-toggle:hover {
+    background-color: var(--accent-color);
+    color: #ffffff;
+    transform: scale(1.1);
 }
