@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>班组隐患管理 | 长庆物探286队爆炸班</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 基础样式 */
+        .hidden-danger-page { padding: 15px; }
+        .team-select { width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        .danger-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .danger-table th, .danger-table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; word-break: break-all; }
+        .danger-table th { background-color: #f5f5f5; }
+        .action-btn { padding: 6px 10px; margin: 5px 0; border: none; border-radius: 4px; background-color: #4CAF50; color: white; cursor: pointer; font-size: 12px; }
+        
+        /* 管理员按钮样式 */
+        .admin-btn { background-color: #2196F3; margin-bottom: 15px; }
+        .add-btn { background-color: #FF9800; }
+        .download-btn { background-color: #9C27B0; }
+
+        /* 签字/传图样式 */
+        .signature-pad { width: 100%; height: 150px; border: 1px solid #ddd; margin: 10px 0; }
+        .photo-preview { width: 80px; height: 80px; object-fit: cover; margin: 5px 0; }
+
+        /* 弹窗样式（管理员登录、添加数据） */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100; display: none; }
+        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; }
+        .close-modal { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+
+        /* 权限提示样式 */
+        .permission-tip { color: #666; font-size: 12px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <!-- 深色模式切换 -->
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+
+    <div class="container hidden-danger-page">
+        <h1>班组隐患管理</h1>
+        
+        <!-- 权限提示（普通用户可见，管理员登录后隐藏） -->
+        <div class="permission-tip" id="permissionTip">
+            提示：仅显示待整改数据，已整改数据需管理员登录后查看
+        </div>
+
+        <!-- 1. 管理员功能入口（默认隐藏，登录后显示） -->
+        <div id="adminFunctions" style="display: none; margin-bottom: 15px;">
+            <button class="action-btn add-btn" id="addDataBtn">添加隐患数据</button>
+            <button class="action-btn download-btn" id="downloadDataBtn">下载已整改数据</button>
+        </div>
+        <!-- 管理员登录按钮（始终显示） -->
+        <button class="action-btn admin-btn" id="adminLoginBtn">管理员登录</button>
+
+        <!-- 2. 班组选择下拉框（严格匹配Excel A列A2开始的班组） -->
+        <select class="team-select" id="teamSelect">
+            <option value="all">全部班组</option>
+            <option value="爆炸班">爆炸班</option>
+            <option value="钻井班">钻井班</option>
+            <option value="测量班">测量班</option>
+            <option value="仪器班">仪器班</option>
+        </select>
+
+        <!-- 3. 隐患表格（班组列严格对应Excel A列） -->
+        <table class="danger-table" id="dangerTable">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>班组（A列）</th> <!-- 明确标注“班组（A列）”，与Excel对应 -->
+                    <th>隐患问题</th>
+                    <th>整改要求</th>
+                    <th>整改人（签字）</th>
+                    <th>整改后照片</th>
+                    <th>整改状态</th>
+                    <th>验证人（签字）</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 爆炸班（Excel A2对应班组） -->
+                <tr data-team="爆炸班" data-id="1" data-status="pending">
+                    <td>1</td>
+                    <td>爆炸班（A2）</td> <!-- 标注A2，与Excel行号对应 -->
+                    <td>民爆物品领用时未双人核对数量</td>
+                    <td>严格执行双人双锁制度，领用前必须双人核对清单与实物数量</td>
+                    <td>
+                        <button class="action-btn signature-btn" data-id="1">签字</button>
+                        <div class="signature-preview" id="signature1"></div>
+                    </td>
+                    <td>
+                        <button class="action-btn upload-btn" data-id="1">上传照片</button>
+                        <input type="file" accept="image/*" capture="camera" class="photo-input" id="photo1" style="display:none">
+                        <div class="photo-preview-container" id="photoPreview1"></div>
+                    </td>
+                    <td id="status1">待整改</td>
+                    <td>（无需签字）</td>
+                </tr>
+
+                <!-- 钻井班（Excel A3对应班组） -->
+                <tr data-team="钻井班" data-id="2" data-status="pending">
+                    <td>2</td>
+                    <td>钻井班（A3）</td> <!-- 标注A3，与Excel行号对应 -->
+                    <td>钻井设备保养记录不完整</td>
+                    <td>每次作业后如实填写保养记录，包含设备状态、更换零件等信息</td>
+                    <td>
+                        <button class="action-btn signature-btn" data-id="2">签字</button>
+                        <div class="signature-preview" id="signature2"></div>
+                    </td>
+                    <td>
+                        <button class="action-btn upload-btn" data-id="2">上传照片</button>
+                        <input type="file" accept="image/*" capture="camera" class="photo-input" id="photo2" style="display:none">
+                        <div class="photo-preview-container" id="photoPreview2"></div>
+                    </td>
+                    <td id="status2">待整改</td>
+                    <td>（无需签字）</td>
+                </tr>
+
+                <!-- 测量班（Excel A4对应班组） -->
+                <tr data-team="测量班" data-id="3" data-status="pending">
+                    <td>3</td>
+                    <td>测量班（A4）</td> <!-- 标注A4，与Excel行号对应 -->
+                    <td>测量仪器校准超期（已超7天）</td>
+                    <td>立即送专业机构校准，校准合格后方可使用，后续每月定期校准</td>
+                    <td>
+                        <button class="action-btn signature-btn" data-id="3">签字</button>
+                        <div class="signature-preview" id="signature3"></div>
+                    </td>
+                    <td>
+                        <button class="action-btn upload-btn" data-id="3">上传照片</button>
+                        <input type="file" accept="image/*" capture="camera" class="photo-input" id="photo3" style="display:none">
+                        <div class="photo-preview-container" id="photoPreview3"></div>
+                    </td>
+                    <td id="status3">待整改</td>
+                    <td>（无需签字）</td>
+                </tr>
+
+                <!-- 仪器班（Excel A5对应班组） -->
+                <tr data-team="仪器班" data-id="4" data-status="pending">
+                    <td>4</td>
+                    <td>仪器班（A5）</td> <!-- 标注A5，与Excel行号对应 -->
+                    <td>数据存储硬盘未备份</td>
+                    <td>每日作业结束后，将采集数据同步备份到2个不同硬盘，防止数据丢失</td>
+                    <td>
+                        <button class="action-btn signature-btn" data-id="4">签字</button>
+                        <div class="signature-preview" id="signature4"></div>
+                    </td>
+                    <td>
+                        <button class="action-btn upload-btn" data-id="4">上传照片</button>
+                        <input type="file" accept="image/*" capture="camera" class="photo-input" id="photo4" style="display:none">
+                        <div class="photo-preview-container" id="photoPreview4"></div>
+                    </td>
+                    <td id="status4">待整改</td>
+                    <td>（无需签字）</td>
+                </tr>
+
+                <!-- 爆炸班（Excel A6对应班组，示例补充） -->
+                <tr data-team="爆炸班" data-id="5" data-status="pending">
+                    <td>5</td>
+                    <td>爆炸班（A6）</td> <!-- 标注A6，与Excel行号对应 -->
+                    <td>炮井填塞工具磨损未及时更换</td>
+                    <td>每周检查工具磨损情况，磨损超30%立即更换新工具</td>
+                    <td>
+                        <button class="action-btn signature-btn" data-id="5">签字</button>
+                        <div class="signature-preview" id="signature5"></div>
+                    </td>
+                    <td>
+                        <button class="action-btn upload-btn" data-id="5">上传照片</button>
+                        <input type="file" accept="image/*" capture="camera" class="photo-input" id="photo5" style="display:none">
+                        <div class="photo-preview-container" id="photoPreview5"></div>
+                    </td>
+                    <td id="status5">待整改</td>
+                    <td>（无需签字）</td>
+                </tr>
+
+                <!-- 钻井班（Excel A7对应班组，示例补充） -->
+                <tr data-team="钻井班" data-id="6" data-status="pending">
+                    <td>6</td>
+                    <td>钻井班（A7）</td> <!-- 标注A7，与Excel行号对应 -->
+                    <td>作业现场未设置安全警示标识</td>
+                    <td>每个钻井点周围5米内设置2个以上安全警示标识，防止无关人员靠近</td>
+                    <td>
+                        <button class="action-btn signature-btn" data-id="6">签字</button>
+                        <div class="signature-preview" id="signature6"></div>
+                    </td>
+                    <td>
+                        <button class="action-btn upload-btn" data-id="6">上传照片</button>
+                        <input type="file" accept="image/*" capture="camera" class="photo-input" id="photo6" style="display:none">
+                        <div class="photo-preview-container" id="photoPreview6"></div>
+                    </td>
+                    <td id="status6">待整改</td>
+                    <td>（无需签字）</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 返回主页按钮（链接正确，无需修改） -->
+        <a href="index.html" class="link-item">返回主页</a>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <p>© 2025 长庆物探286队爆炸班 | 隐患管理系统</p>
+        </div>
+    </div>
+
+    <!-- 4. 弹窗：管理员登录 -->
+    <div class="modal" id="adminLoginModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeLoginModal">&times;</span>
+            <h2>管理员登录</h2>
+            <div class="form-group">
+                <label for="adminPassword">管理员密码</label>
+                <input type="password" id="adminPassword" placeholder="请输入管理员密码">
+            </div>
+            <button class="action-btn" id="confirmLoginBtn">登录</button>
+        </div>
+    </div>
+
+    <!-- 5. 弹窗：添加隐患数据 -->
+    <div class="modal" id="addDataModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeAddDataModal">&times;</span>
+            <h2>添加隐患数据（匹配Excel A列）</h2>
+            <div class="form-group">
+                <label for="newTeam">班组（对应Excel A列）</label> <!-- 明确标注对应Excel A列 -->
+                <select id="newTeam">
+                    <option value="爆炸班">爆炸班</option>
+                    <option value="钻井班">钻井班</option>
+                    <option value="测量班">测量班</option>
+                    <option value="仪器班">仪器班</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="newExcelRow">对应Excel行号（如A8）</label> <!-- 新增行号输入，与Excel完全对应 -->
+                <input type="text" id="newExcelRow" placeholder="例如：A8、A9">
+            </div>
+            <div class="form-group">
+                <label for="newDanger">隐患问题</label>
+                <textarea id="newDanger" rows="2" placeholder="请输入隐患问题"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="newRequirement">整改要求</label>
+                <textarea id="newRequirement" rows="2" placeholder="请输入整改要求"></textarea>
+            </div>
+            <button class="action-btn add-btn" id="confirmAddDataBtn">确认添加</button>
+        </div>
+    </div>
+
+    <!-- 6. 弹窗：签字 -->
+    <div class="modal" id="signatureModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeSignatureModal">&times;</span>
+            <h2>手写签字</h2>
+            <canvas class="signature-pad" id="signaturePad"></canvas>
+            <button class="action-btn" id="saveSignatureBtn">保存签字</button>
+            <button class="action-btn" style="background-color:#f44336" id="clearSignatureBtn">清除</button>
+        </div>
+    </div>
+
+    <!-- JS功能：核心逻辑 -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script> <!-- 用于下载Excel -->
+    <script>
+        // -------------------------- 基础配置 --------------------------
+        const ADMIN_PASSWORD = 'admin123'; // 管理员默认密码（可修改）
+        let isAdminLoggedIn = false; // 管理员登录状态
+        let nextDataId = 7; // 新增数据ID（从7开始）
+        const dangerRows = document.querySelectorAll('#dangerTable tbody tr'); // 所有数据行
+
+        // -------------------------- 深色模式 --------------------------
+        const themeToggle = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+            themeToggle.textContent = '☀️';
+        }
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark-theme');
+            themeToggle.textContent = document.documentElement.classList.contains('dark-theme') ? '☀️' : '🌙';
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark-theme') ? 'dark' : 'light');
+        });
+
+        // -------------------------- 核心权限控制：筛选数据可见性 --------------------------
+        function filterDataVisibility() {
+            const selectedTeam = document.getElementById('teamSelect').value; // 当前选中的班组
+
+            dangerRows.forEach(row => {
+                const rowTeam = row.dataset.team; // 行对应的班组
+                const rowStatus = row.dataset.status; // 行对应的整改状态（pending/completed）
+
+                // 管理员登录：显示所有符合班组条件的行（待整改+已整改）
+                if (isAdminLoggedIn) {
+                    if (selectedTeam === 'all' || rowTeam === selectedTeam) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                } 
+                // 普通用户：仅显示“待整改”且符合班组条件的行
+                else {
+                    if ((selectedTeam === 'all' || rowTeam === selectedTeam) && rowStatus === 'pending') {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+
+            // 控制权限提示的显示/隐藏（管理员登录后隐藏提示）
+            document.getElementById('permissionTip').style.display = isAdminLoggedIn ? 'none' : 'block';
+        }
+
+        // -------------------------- 1. 管理员登录功能 --------------------------
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const adminLoginModal = document.getElementById('adminLoginModal');
+        const closeLoginModal = document.getElementById('closeLoginModal');
+        const adminPasswordInput = document.getElementById('adminPassword');
+        const confirmLoginBtn = document.getElementById('confirmLoginBtn');
+        const adminFunctions = document.getElementById('adminFunctions');
+
+        // 打开登录弹窗
+        adminLoginBtn.addEventListener('click', () => {
+            if (isAdminLoggedIn) {
+                alert('已处于管理员登录状态');
+                return;
+            }
+            adminPasswordInput.value = '';
+            adminLoginModal.style.display = 'block';
+        });
+
+        // 关闭登录弹窗
+        closeLoginModal.addEventListener('click', () => {
+            adminLoginModal.style.display = 'none';
+        });
+
+        // 确认登录（登录后刷新数据可见性）
+        confirmLoginBtn.addEventListener('click', () => {
+            const inputPassword = adminPasswordInput.value.trim();
+            if (inputPassword === ADMIN_PASSWORD) {
+                isAdminLoggedIn = true;
+                adminLoginModal.style.display = 'none';
+                adminFunctions.style.display = 'block';
+                filterDataVisibility(); // 登录后显示所有数据
+                alert('管理员登录成功！已显示所有数据（待整改+已整改）');
+            } else {
+                alert('密码错误，请重新输入');
+            }
+        });
+
+        // -------------------------- 2. 添加隐患数据功能（匹配Excel A列） --------------------------
+        const addDataBtn = document.getElementById('addDataBtn');
+        const addDataModal = document.getElementById('addDataModal');
+        const closeAddDataModal = document.getElementById('closeAddDataModal');
+        const newTeamSelect = document.getElementById('newTeam');
+        const newExcelRowInput = document.getElementById('newExcelRow'); // 新增Excel行号输入
+        const newDangerInput = document.getElementById('newDanger');
+        const newRequirementInput = document.getElementById('newRequirement');
+        const confirmAddDataBtn = document.getElementById('confirmAddDataBtn');
+        const dangerTableBody = document.querySelector('#dangerTable tbody');
+
+        // 打开添加数据弹窗
+        addDataBtn.addEventListener('click', () => {
+            if (!isAdminLoggedIn) {
+                alert('请先登录管理员');
+                return;
+            }
+            newExcelRowInput.value = '';
+            newDangerInput.value = '';
+            newRequirementInput.value = '';
+            addDataModal.style.display = 'block';
+        });
+
+        // 关闭添加数据弹窗
+        closeAddDataModal.addEventListener('click', () => {
+            addDataModal.style.display = 'none';
+        });
+
+        // 确认添加数据（新增数据默认“待整改”状态）
+        confirmAddDataBtn.addEventListener('click', () => {
+            const newTeam = newTeamSelect.value;
+            const newExcelRow = newExcelRowInput.value.trim();
+            const newDanger = newDangerInput.value.trim();
+            const newRequirement = newRequirementInput.value.trim();
+
+            // 验证输入（必须填写Excel行号）
+            if (!newExcelRow || !/^A\d+$/.test(newExcelRow)) { // 验证行号格式（如A8）
+                alert('请输入正确的Excel行号（例如：A8、A9）');
+                return;
+            }
+            if (!newDanger || !newRequirement) {
+                alert('隐患问题和整改要求不能为空');
+                return;
+            }
+
+            // 计算新序号
+            const lastRow = dangerTableBody.lastElementChild;
+            const newSerial = lastRow ? parseInt(lastRow.cells[0].textContent) + 1 : 1;
+
+            // 创建新行（默认“待整改”状态，data-status="pending"）
+            const newRow = document.createElement('tr');
+            newRow.dataset.team = newTeam;
+            newRow.dataset.id = nextDataId;
+            newRow.dataset.status = 'pending'; // 新增数据默认待整改
+            newRow.innerHTML = `
+                <td>${newSerial}</td>
+                <td>${newTeam}（${newExcelRow}）</td> <!-- 显示班组+Excel行号，与A列完全对应 -->
+                <td>${newDanger}</td>
+                <td>${newRequirement}</td>
+                <td>
+                    <button class="action-btn signature-btn" data-id="${nextDataId}">签字</button>
+                    <div class="signature-preview" id="signature${nextDataId}"></div>
+                </td>
+                <td>
+                    <button class="action-btn upload-btn" data-id="${nextDataId}">上传照片</button>
+                    <input type="file" accept="image/*" capture="camera" class="photo-input" id="photo${nextDataId}" style="display:none">
+                    <div class="photo-preview-container" id="photoPreview${nextDataId}"></div>
+                </td>
+                <td id="status${nextDataId}">待整改</td>
+                <td>（无需签字）</td>
+            `;
+
+            // 添加到表格并更新行列表
+            dangerTableBody.appendChild(newRow);
+            dangerRows.push(newRow); // 将新行加入行列表，用于后续筛选
+
+            // 绑定事件
+            bindSignatureEvent(newRow.querySelector(`.signature-btn`));
+            bindUploadEvent(newRow.querySelector(`.upload-btn`));
+
+            // 刷新数据可见性（确保新行按权限显示）
+            filterDataVisibility();
+
+            // 更新ID和关闭弹窗
+            nextDataId++;
+            addDataModal.style.display = 'none';
+            alert(`隐患数据添加成功！已关联Excel ${newExcelRow} 行，默认待整改状态`);
+        });
+
+        // -------------------------- 3. 下载已整改数据功能 --------------------------
+        const downloadDataBtn = document.getElementById('downloadDataBtn');
+
+        downloadDataBtn.addEventListener('click', () => {
+            if (!isAdminLoggedIn) {
+                alert('请先登录管理员');
+                return;
+            }
+
+            // 收集已整改数据（data-status="completed"）
+            const completedData = [];
+            dangerRows.forEach(row => {
+                if (row.dataset.status === 'completed') {
+                    completedData.push({
+                        序号: row.cells[0].textContent,
+                        班组（Excel A列）: row.cells[1].textContent, // 包含Excel行号
+                        隐患问题: row.cells[2].textContent,
+                        整改要求: row.cells[3].textContent,
+                        整改状态: '已完成',
+                        整改时间: new Date().toLocaleString()
+                    });
+                }
+            });
+
+            if (completedData.length === 0) {
+                alert('暂无已整改的数据');
+                return;
+            }
+
+            // 生成Excel（包含Excel A列关联信息）
+            const worksheet = XLSX.utils.json_to_sheet(completedData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, '已整改隐患数据（关联Excel A列）');
+            XLSX.writeFile(workbook, `班组已整改隐患数据_${new Date().toLocaleDateString()}.xlsx`);
+        });
+
+        // -------------------------- 4. 班组切换功能（切换时刷新可见性） --------------------------
+        const teamSelect = document.getElementById('teamSelect');
+        teamSelect.addEventListener('change', filterDataVisibility); // 切换班组时触发筛选
+
+        // -------------------------- 5. 签字功能（签字后检查是否已完成） --------------------------
+        const signatureModal = document.getElementById('signatureModal');
+        const closeSignatureModal = document.getElementById('closeSignatureModal');
+        const signaturePad = new SignaturePad(document.getElementById('signaturePad'), {
+            backgroundColor: 'rgba(255, 255, 255, 0)',
+            penColor: '#000'
+        });
+        let currentSignatureId = '';
+
+        // 绑定签字事件
+        function bindSignatureEvent(btn) {
+            btn.addEventListener('click', (e) => {
+                currentSignatureId = e.target.dataset.id;
+                signaturePad.clear();
+                signatureModal.style.display = 'block';
+            });
+        }
+
+        // 初始绑定
+        document.querySelectorAll('.signature-btn').forEach(btn => {
+            bindSignatureEvent(btn);
+        });
+
+        // 关闭弹窗
+        closeSignatureModal.addEventListener('click', () => {
+            signatureModal.style.display = 'none';
+        });
+
+        // 保存签字（检查是否已上传照片，若已上传则标记为“已完成”）
+        document.getElementById('saveSignatureBtn').addEventListener('click', () => {
+            if (signaturePad.isEmpty()) {
+                alert('请先完成签字');
+                return;
+            }
+
+            const signatureData = signaturePad.toDataURL();
+            const previewContainer = document.getElementById(`signature${currentSignatureId}`);
+            previewContainer.innerHTML = `<img src="${signatureData}" style="width:100%; height:auto">`;
+            localStorage.setItem(`signature_${currentSignatureId}`, signatureData);
+
+            // 找到当前行，检查是否已上传照片
+            const currentRow = document.querySelector(`tr[data-id="${currentSignatureId}"]`);
+            const photo = localStorage.getItem(`photo${currentSignatureId}`);
+
+            // 签字+照片都完成：标记为“已完成”，更新状态和权限
+            if (photo) {
+                currentRow.dataset.status = 'completed'; // 更新行状态为已完成
+                document.getElementById(`status${currentSignatureId}`).textContent = '已完成';
+                document.getElementById(`status${currentSignatureId}`).style.color = 'green';
+                filterDataVisibility(); // 刷新可见性（普通用户将看不到此行）
+                alert('签字和照片均已完成，数据标记为“已完成”，普通用户将无法查看');
+            }
+
+            signatureModal.style.display = 'none';
+        });
+
+        // 清除签字
+        document.getElementById('clearSignatureBtn').addEventListener('click', () => {
+            signaturePad.clear();
+        });
+
+        // -------------------------- 6. 照片上传功能（上传后检查是否已完成） --------------------------
+        // 绑定上传事件
+        function bindUploadEvent(btn) {
+            btn.addEventListener('click', (e) => {
+                const photoId = e.target.dataset.id;
+                document.getElementById(`photo${photoId}`).click();
+            });
+        }
+
+        // 初始绑定
+        document.querySelectorAll('.upload-btn').forEach(btn => {
+            bindUploadEvent(btn);
+        });
+
+        // 预览照片（上传后检查是否已签字，若已签字则标记为“已完成”）
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('photo-input')) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const photoId = e.target.id.replace('photo', '');
+                const previewContainer = document.getElementById(`photoPreview${photoId}`);
+                const reader = new FileReader();
+
+                reader.onload = (event) => {
+                    previewContainer.innerHTML = `<img src="${event.target.result}" class="photo-preview">`;
+                    localStorage.setItem(`photo${photoId}`, event.target.result);
+
+                    // 找到当前行，检查是否已签字
+                    const currentRow = document.querySelector(`tr[data-id="${photoId}"]`);
+                    const signature = localStorage.getItem(`signature_${photoId}`);
+
+                    // 照片+签字都完成：标记为“已完成”，更新状态和权限
+                    if (signature) {
+                        currentRow.dataset.status = 'completed'; // 更新行状态为已完成
+                        document.getElementById(`status${photoId}`).textContent = '已完成';
+                        document.getElementById(`status${photoId}`).style.color = 'green';
+                        filterDataVisibility(); // 刷新可见性（普通用户将看不到此行）
+                        alert('照片和签字均已完成，数据标记为“已完成”，普通用户将无法查看');
+                    }
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // -------------------------- 7. 加载本地数据（页面刷新后恢复状态和权限） --------------------------
+        window.addEventListener('load', () => {
+            dangerRows.forEach(row => {
+                const id = row.dataset.id;
+                const signature = localStorage.getItem(`signature_${id}`);
+                const photo = localStorage.getItem(`photo${id}`);
+
+                // 加载签字
+                if (signature) {
+                    document.getElementById(`signature${id}`).innerHTML = `<img src="${signature}" style="width:100%; height:auto">`;
+                }
+
+                // 加载照片
+                if (photo) {
+                    document.getElementById(`photoPreview${id}`).innerHTML = `<img src="${photo}" class="photo-preview">`;
+                }
+
+                // 恢复整改状态（签字+照片都存在则标记为已完成）
+                if (signature && photo) {
+                    row.dataset.status = 'completed';
+                    document.getElementById(`status${id}`).textContent = '已完成';
+                    document.getElementById(`status${id}`).style.color = 'green';
+                } else {
+                    row.dataset.status = 'pending';
+                    document.getElementById(`status${id}`).textContent = '待整改';
+                    document.getElementById(`status${id}`).style.color = '';
+                }
+            });
+
+            // 初始加载时筛选数据可见性（普通用户仅看待整改）
+            filterDataVisibility();
+        });
+    </script>
+</body>
+</html>
