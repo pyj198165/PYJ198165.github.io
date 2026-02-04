@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目资料 | 长庆物探286队爆炸班</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 深色模式切换按钮 -->
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+
+    <div class="container">
+        <div class="header">
+            <h1>项目资料</h1>
+            <p class="bio">攻坚克难，数据支撑勘探</p>
+        </div>
+
+        <div class="content-section">
+            <h2>经典项目业绩</h2>
+            <p>常年奋战在鄂尔多斯盆地，参与完成数十个大型三维地震勘探项目，在黄土塬、山地、沙漠过渡带等复杂地表条件下屡创佳绩。</p>
+            
+            <h2>核心成果</h2>
+            <ul class="project-list">
+                <li><strong>效率突破</strong>：在陕45井区三维项目中，创下<strong>日放炮5016炮</strong>的长庆探区过渡带井炮生产纪录。</li>
+                <li><strong>质量领先</strong>：多个项目数据采集合格率达98.7%以上，为油气藏精准成像提供高质量数据。</li>
+                <li><strong>技术创新</strong>：优化“黄土塬浅井激发工艺”，有效提升深层信号能量，获分公司技术革新奖。</li>
+                <li><strong>安全标杆</strong>：连续多年实现安全生产零事故，多次被评为“安全生产先进班组”。</li>
+            </ul>
+        </div>
+
+        <div class="links">
+            <a href="index.html" class="link-item">返回主页</a>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 长庆物探286队爆炸班 | 由 GitHub Pages 强力驱动</p>
+        </div>
+    </div>
+
+    <!-- 深色模式切换脚本 -->
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+            themeToggle.textContent = '☀️';
+        } else if (savedTheme === 'light') {
+            document.documentElement.classList.remove('dark-theme');
+            themeToggle.textContent = '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark-theme');
+            const isDark = document.documentElement.classList.contains('dark-theme');
+            themeToggle.textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+    </script>
+</body>
+</html>

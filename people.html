@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人员信息 | 长庆物探286队爆炸班</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 深色模式切换按钮 -->
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+
+    <div class="container">
+        <div class="header">
+            <h1>人员信息</h1>
+            <p class="bio">精兵强将，专业铸就安全防线</p>
+        </div>
+
+        <div class="content-section">
+            <h2>班组概况</h2>
+            <p>爆炸班现有成员12人，平均年龄35岁，平均从业年限8年。全员持证上岗，其中高级爆破工程师1名，中级爆破技术员3名，安全员2名，组成了一支技术精湛、经验丰富、作风硬朗的专业队伍。</p>
+            
+            <h2>核心成员</h2>
+            <ul class="member-list">
+                <li><strong>张某某 (班长)</strong>：全面负责班组生产、安全及人员管理，拥有15年一线爆破经验。</li>
+                <li><strong>李某某 (安全员)</strong>：持有注册安全工程师证，负责现场安全监督、风险管控及应急处置。</li>
+                <li><strong>王某某 (技术负责)</strong>：负责炮井设计、药量核算及激发工艺优化，确保数据采集质量。</li>
+                <li><strong>作业组员</strong>：8名经验丰富的爆破作业员，熟练掌握装药、填塞、联线、起爆等全流程操作。</li>
+            </ul>
+        </div>
+
+        <div class="links">
+            <a href="index.html" class="link-item">返回主页</a>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 长庆物探286队爆炸班 | 由 GitHub Pages 强力驱动</p>
+        </div>
+    </div>
+
+    <!-- 深色模式切换脚本 -->
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+            themeToggle.textContent = '☀️';
+        } else if (savedTheme === 'light') {
+            document.documentElement.classList.remove('dark-theme');
+            themeToggle.textContent = '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark-theme');
+            const isDark = document.documentElement.classList.contains('dark-theme');
+            themeToggle.textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+    </script>
+</body>
+</html>

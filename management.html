@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班组管理 | 长庆物探286队爆炸班</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 深色模式切换按钮 -->
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+
+    <div class="container">
+        <div class="header">
+            <h1>班组管理</h1>
+            <p class="bio">严细实快，标准成就卓越</p>
+        </div>
+
+        <div class="content-section">
+            <h2>安全管理理念</h2>
+            <p>坚持“安全第一、预防为主、综合治理”的方针，树立“每一炮都是责任”的安全意识，严格执行民爆物品“双人双锁、日清日结”制度，实现全流程闭环管理。</p>
+            
+            <h2>核心管理制度</h2>
+            <ul class="manage-list">
+                <li><strong>班前会制度</strong>：每日施工前进行安全交底、风险提示和任务分配。</li>
+                <li><strong>一炮一检制度</strong>：每炮施工前，对炮井、药量、线路进行全面检查，确认无误后方可起爆。</li>
+                <li><strong>盲炮处置预案</strong>：制定标准化盲炮排查与处理流程，确保应急处置安全高效。</li>
+                <li><strong>台账记录制度</strong>：详细记录每炮的点位、药量、激发状态，实现生产过程可追溯。</li>
+            </ul>
+        </div>
+
+        <div class="links">
+            <a href="index.html" class="link-item">返回主页</a>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 长庆物探286队爆炸班 | 由 GitHub Pages 强力驱动</p>
+        </div>
+    </div>
+
+    <!-- 深色模式切换脚本 -->
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+            themeToggle.textContent = '☀️';
+        } else if (savedTheme === 'light') {
+            document.documentElement.classList.remove('dark-theme');
+            themeToggle.textContent = '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark-theme');
+            const isDark = document.documentElement.classList.contains('dark-theme');
+            themeToggle.textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+    </script>
+</body>
+</html>
