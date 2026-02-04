@@ -1,457 +1,422 @@
-<!DOCTYPE html>
+# 创建完整的HTML页面代码
+html_content = '''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>隐患管理系统</title>
+    <title>隐患整改记录系统</title>
     <style>
-        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            font-size: 14px;
+            background-color: #f5f7fa;
+            padding: 20px;
+            min-height: 100vh;
         }
-        .danger-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-        .danger-table th, .danger-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-            vertical-align: middle;
+        
+        .header {
+            background-color: #2c6ed6;
+            color: white;
+            padding: 20px;
+            text-align: center;
         }
-        .danger-table th {
-            background-color: #f2f2f2;
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .step {
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
             font-weight: bold;
+            color: #333;
+            font-size: 16px;
         }
-        /* 按钮样式 */
-        .action-btn {
-            background-color: #4CAF50;
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #2c6ed6;
+            box-shadow: 0 0 0 3px rgba(44, 110, 214, 0.1);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #2c6ed6;
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
+            border-radius: 6px;
+            font-size: 16px;
             cursor: pointer;
-            font-size: 12px;
+            transition: background-color 0.3s;
         }
-        .action-btn:hover {
-            background-color: #45a049;
+        
+        .btn:hover {
+            background-color: #1e54b0;
         }
-        .admin-btn {
-            background-color: #2196F3;
+        
+        .btn-back {
+            background-color: #6c757d;
+            margin-right: 10px;
+        }
+        
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .hazard-item {
+            background-color: #f8f9fa;
+            border-left: 4px solid #2c6ed6;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 6px 6px 0;
+        }
+        
+        .hazard-title {
+            font-weight: bold;
+            color: #2c6ed6;
+            margin-bottom: 8px;
+            font-size: 17px;
+        }
+        
+        .hazard-info {
+            margin-bottom: 8px;
+            color: #555;
+            line-height: 1.5;
+        }
+        
+        .hazard-label {
+            display: inline-block;
+            width: 100px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .signature-group {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed #ddd;
+        }
+        
+        .photo-preview {
+            margin-top: 10px;
+            max-width: 100%;
+            max-height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .success-message {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .success-icon {
+            font-size: 60px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        
+        .success-title {
+            font-size: 22px;
+            color: #333;
             margin-bottom: 10px;
         }
-        /* 照片预览样式（D列整改前照片） */
-        .pre-repair-photo {
-            width: 100px;
-            height: 80px;
-            object-fit: cover;
-            border: 1px solid #eee;
-            border-radius: 4px;
-        }
-        /* 隐藏元素 */
-        .hidden {
-            display: none !important;
-        }
-        /* 模态框样式 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-        }
-        .modal-content {
-            background-color: white;
-            margin: 10% auto;
-            padding: 20px;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 8px;
-        }
-        .close-modal {
-            float: right;
-            font-size: 20px;
-            cursor: pointer;
-        }
-        .form-group {
-            margin: 15px 0;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        
+        .success-desc {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
         }
     </style>
 </head>
 <body>
-    <h2>长庆物探286队隐患管理表</h2>
-    
-    <!-- 管理员登录按钮 -->
-    <button class="action-btn admin-btn" id="adminLoginBtn">管理员登录</button>
-    
-    <!-- 管理员操作区（默认隐藏） -->
-    <div id="adminActions" class="hidden">
-        <button class="action-btn admin-btn" id="addHazardBtn">新增隐患（含整改前照片）</button>
-    </div>
-
-    <!-- 隐患表格 -->
-    <table class="danger-table" id="hazardTable">
-        <thead>
-            <tr>
-                <th>序号</th>
-                <th>班组（A列）</th>
-                <th>隐患问题（B列）</th>
-                <th>整改要求（C列）</th>
-                <th>整改前照片（D列）</th> <!-- 管理员预设 -->
-                <th>整改人签字</th>
-                <th>整改后照片</th>
-                <th>整改状态</th>
-            </tr>
-        </thead>
-        <tbody id="hazardTableBody">
-            <!-- 示例数据（管理员预设整改前照片） -->
-            <tr data-id="1" data-team="爆炸班" data-status="pending">
-                <td>1</td>
-                <td>爆炸班（A2）</td>
-                <td>民爆物品领用时未双人核对数量</td>
-                <td>严格执行双人双锁制度，领用前必须双人核对清单与实物数量</td>
-                <td>
-                    <!-- 管理员预设的整改前照片 -->
-                    <img src="" class="pre-repair-photo" id="prePhoto1">
-                    <!-- 管理员编辑按钮（默认隐藏） -->
-                    <button class="action-btn hidden admin-edit-photo" data-id="1">更换整改前照片</button>
-                    <input type="file" accept="image/*" class="hidden photo-input" id="prePhotoInput1">
-                </td>
-                <td>
-                    <button class="action-btn signature-btn" data-id="1">签字</button>
-                    <div id="signature1"></div>
-                </td>
-                <td>
-                    <button class="action-btn upload-btn" data-id="1">上传整改后照片</button>
-                    <input type="file" accept="image/*" capture="camera" class="hidden photo-input" id="postPhotoInput1">
-                    <div id="postPhotoPreview1"></div>
-                </td>
-                <td id="status1">待整改</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- 管理员登录模态框 -->
-    <div class="modal" id="adminLoginModal">
-        <div class="modal-content">
-            <span class="close-modal" id="closeLoginModal">&times;</span>
-            <h3>管理员登录</h3>
-            <div class="form-group">
-                <label for="adminPwd">管理员密码：</label>
-                <input type="password" id="adminPwd" placeholder="默认密码：admin123">
-            </div>
-            <button class="action-btn" id="doAdminLogin">登录</button>
+    <div class="container">
+        <div class="header">
+            <h1>隐患整改记录系统</h1>
+            <p>扫码填写隐患整改信息</p>
         </div>
-    </div>
-
-    <!-- 新增隐患模态框 -->
-    <div class="modal" id="addHazardModal">
-        <div class="modal-content">
-            <span class="close-modal" id="closeAddModal">&times;</span>
-            <h3>新增隐患（管理员）</h3>
-            <div class="form-group">
-                <label for="newTeam">班组：</label>
-                <select id="newTeam">
-                    <option value="爆炸班">爆炸班</option>
-                    <option value="钻井班">钻井班</option>
-                    <option value="测量班">测量班</option>
-                    <option value="仪器班">仪器班</option>
-                </select>
+        
+        <div class="content">
+            <!-- 步骤1: 选择班组 -->
+            <div id="step1" class="step active">
+                <div class="form-group">
+                    <label for="groupSelect">请选择班组</label>
+                    <select id="groupSelect" required>
+                        <option value="">-- 请选择班组 --</option>
+                        <option value="放线班">放线班</option>
+                        <option value="炊事班">炊事班</option>
+                        <option value="后勤组">后勤组</option>
+                    </select>
+                </div>
+                
+                <div class="btn-container">
+                    <button id="toStep2" class="btn">下一步</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="newProblem">隐患问题：</label>
-                <textarea id="newProblem" rows="2" placeholder="请输入隐患问题"></textarea>
+            
+            <!-- 步骤2: 查看隐患信息并填写整改内容 -->
+            <div id="step2" class="step">
+                <div id="hazardList" class="hazard-list">
+                    <!-- 隐患信息将通过JS动态加载 -->
+                </div>
+                
+                <div class="btn-container">
+                    <button id="backToStep1" class="btn btn-back">上一步</button>
+                    <button id="toStep3" class="btn">提交整改记录</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="newRequirement">整改要求：</label>
-                <textarea id="newRequirement" rows="2" placeholder="请输入整改要求"></textarea>
+            
+            <!-- 步骤3: 提交成功 -->
+            <div id="step3" class="step">
+                <div class="success-message">
+                    <div class="success-icon">✓</div>
+                    <h2 class="success-title">整改记录提交成功！</h2>
+                    <p class="success-desc">您的隐患整改信息已成功保存，感谢您的配合。</p>
+                    <button id="resetForm" class="btn">重新填写</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="newPrePhoto">整改前照片（必填）：</label>
-                <input type="file" accept="image/*" id="newPrePhoto">
-                <div id="newPrePhotoPreview"></div>
-            </div>
-            <button class="action-btn" id="saveNewHazard">保存</button>
         </div>
     </div>
 
     <script>
-        // 全局变量
-        let isAdmin = false; // 是否管理员登录
-        let nextDataId = 2; // 下一个隐患ID
-        const ADMIN_PASSWORD = "admin123"; // 管理员默认密码
-
-        // -------------------------- 管理员登录逻辑 --------------------------
-        const adminLoginBtn = document.getElementById('adminLoginBtn');
-        const adminLoginModal = document.getElementById('adminLoginModal');
-        const closeLoginModal = document.getElementById('closeLoginModal');
-        const doAdminLogin = document.getElementById('doAdminLogin');
-        const adminPwd = document.getElementById('adminPwd');
-        const adminActions = document.getElementById('adminActions');
-
-        // 打开登录模态框
-        adminLoginBtn.addEventListener('click', () => {
-            adminLoginModal.style.display = 'block';
-        });
-
-        // 关闭登录模态框
-        closeLoginModal.addEventListener('click', () => {
-            adminLoginModal.style.display = 'none';
-        });
-
-        // 管理员登录验证
-        doAdminLogin.addEventListener('click', () => {
-            if (adminPwd.value === ADMIN_PASSWORD) {
-                isAdmin = true;
-                adminLoginModal.style.display = 'none';
-                adminLoginBtn.textContent = '已登录（管理员）';
-                adminActions.classList.remove('hidden'); // 显示管理员操作区
-                // 显示所有整改前照片的编辑按钮
-                document.querySelectorAll('.admin-edit-photo').forEach(btn => {
-                    btn.classList.remove('hidden');
-                });
-                alert('管理员登录成功！可新增隐患、修改整改前照片');
+        // 隐患数据
+        const hazardData = [
+            {
+                group: "放线班",
+                location: "放线班宿舍",
+                description: "使用的插板电线破损",
+                id: "hazard1"
+            },
+            {
+                group: "放线班",
+                location: "放线班宿舍",
+                description: "门上方悬掉电源线",
+                id: "hazard2"
+            },
+            {
+                group: "炊事班",
+                location: "小营地炊事班宿舍",
+                description: "小营地炊事班宿舍插板未上墙固定",
+                id: "hazard3"
+            },
+            {
+                group: "后勤组",
+                location: "小营地柴油温水器",
+                description: "小营地柴油温水器插板不符合要求",
+                id: "hazard4"
+            }
+        ];
+        
+        // DOM元素
+        const groupSelect = document.getElementById('groupSelect');
+        const toStep2Btn = document.getElementById('toStep2');
+        const backToStep1Btn = document.getElementById('backToStep1');
+        const toStep3Btn = document.getElementById('toStep3');
+        const resetFormBtn = document.getElementById('resetForm');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const hazardList = document.getElementById('hazardList');
+        
+        // 下一步：从选择班组到查看隐患
+        toStep2Btn.addEventListener('click', function() {
+            const selectedGroup = groupSelect.value;
+            
+            if (!selectedGroup) {
+                alert('请先选择一个班组');
+                return;
+            }
+            
+            // 清空之前的隐患列表
+            hazardList.innerHTML = '';
+            
+            // 筛选选中班组的隐患
+            const groupHazards = hazardData.filter(hazard => hazard.group === selectedGroup);
+            
+            if (groupHazards.length === 0) {
+                hazardList.innerHTML = '<p class="hazard-info">该班组暂无隐患记录</p>';
             } else {
-                alert('密码错误！默认密码：admin123');
+                // 生成隐患列表HTML
+                groupHazards.forEach(hazard => {
+                    const hazardHtml = `
+                        <div class="hazard-item" id="${hazard.id}">
+                            <div class="hazard-title">${hazard.group} - 隐患 #${hazard.id.replace('hazard', '')}</div>
+                            <div class="hazard-info">
+                                <span class="hazard-label">隐患位置：</span>
+                                ${hazard.location}
+                            </div>
+                            <div class="hazard-info">
+                                <span class="hazard-label">隐患描述：</span>
+                                ${hazard.description}
+                            </div>
+                            <div class="signature-group">
+                                <div class="form-group">
+                                    <label for="signature-${hazard.id}">整改人(签字)：</label>
+                                    <input type="text" id="signature-${hazard.id}" placeholder="请输入整改人姓名" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="photo-${hazard.id}">整改后照片：</label>
+                                    <input type="file" id="photo-${hazard.id}" accept="image/*" required>
+                                    <img id="preview-${hazard.id}" class="photo-preview" alt="照片预览">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    hazardList.innerHTML += hazardHtml;
+                });
+                
+                // 为每个照片上传添加预览功能
+                groupHazards.forEach(hazard => {
+                    const photoInput = document.getElementById(`photo-${hazard.id}`);
+                    const previewImg = document.getElementById(`preview-${hazard.id}`);
+                    
+                    photoInput.addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(event) {
+                                previewImg.src = event.target.result;
+                                previewImg.style.display = 'block';
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                });
             }
+            
+            // 切换步骤
+            step1.classList.remove('active');
+            step2.classList.add('active');
         });
-
-        // -------------------------- 新增隐患（管理员） --------------------------
-        const addHazardBtn = document.getElementById('addHazardBtn');
-        const addHazardModal = document.getElementById('addHazardModal');
-        const closeAddModal = document.getElementById('closeAddModal');
-        const saveNewHazard = document.getElementById('saveNewHazard');
-        const newPrePhoto = document.getElementById('newPrePhoto');
-        const newPrePhotoPreview = document.getElementById('newPrePhotoPreview');
-        const hazardTableBody = document.getElementById('hazardTableBody');
-
-        // 打开新增隐患模态框
-        addHazardBtn.addEventListener('click', () => {
-            if (!isAdmin) return;
-            addHazardModal.style.display = 'block';
+        
+        // 上一步：从查看隐患回到选择班组
+        backToStep1Btn.addEventListener('click', function() {
+            step2.classList.remove('active');
+            step1.classList.add('active');
         });
-
-        // 关闭新增隐患模态框
-        closeAddModal.addEventListener('click', () => {
-            addHazardModal.style.display = 'none';
-            // 清空表单
-            document.getElementById('newTeam').value = '爆炸班';
-            document.getElementById('newProblem').value = '';
-            document.getElementById('newRequirement').value = '';
-            newPrePhoto.value = '';
-            newPrePhotoPreview.innerHTML = '';
-        });
-
-        // 预览新增隐患的整改前照片（管理员）
-        newPrePhoto.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file || !file.type.startsWith('image/')) {
-                alert('请选择有效的图片文件');
-                newPrePhoto.value = '';
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                newPrePhotoPreview.innerHTML = `<img src="${e.target.result}" class="pre-repair-photo">`;
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // 保存新增隐患（含管理员上传的整改前照片）
-        saveNewHazard.addEventListener('click', () => {
-            const team = document.getElementById('newTeam').value;
-            const problem = document.getElementById('newProblem').value.trim();
-            const requirement = document.getElementById('newRequirement').value.trim();
-            const prePhotoFile = newPrePhoto.files[0];
-
-            if (!problem || !requirement || !prePhotoFile) {
-                alert('请填写完整信息并上传整改前照片！');
-                return;
-            }
-
-            // 读取整改前照片
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                // 创建新行
-                const newRow = document.createElement('tr');
-                newRow.dataset.id = nextDataId;
-                newRow.dataset.team = team;
-                newRow.dataset.status = 'pending';
-                newRow.innerHTML = `
-                    <td>${nextDataId}</td>
-                    <td>${team}</td>
-                    <td>${problem}</td>
-                    <td>${requirement}</td>
-                    <td>
-                        <img src="${e.target.result}" class="pre-repair-photo" id="prePhoto${nextDataId}">
-                        <button class="action-btn admin-edit-photo" data-id="${nextDataId}">更换整改前照片</button>
-                        <input type="file" accept="image/*" class="hidden photo-input" id="prePhotoInput${nextDataId}">
-                    </td>
-                    <td>
-                        <button class="action-btn signature-btn" data-id="${nextDataId}">签字</button>
-                        <div id="signature${nextDataId}"></div>
-                    </td>
-                    <td>
-                        <button class="action-btn upload-btn" data-id="${nextDataId}">上传整改后照片</button>
-                        <input type="file" accept="image/*" capture="camera" class="hidden photo-input" id="postPhotoInput${nextDataId}">
-                        <div id="postPhotoPreview${nextDataId}"></div>
-                    </td>
-                    <td id="status${nextDataId}">待整改</td>
-                `;
-
-                // 添加到表格
-                hazardTableBody.appendChild(newRow);
-
-                // 绑定新行的整改前照片编辑事件（管理员）
-                bindPrePhotoEditEvent(nextDataId);
-                // 绑定整改后照片上传事件
-                bindPostPhotoUploadEvent(nextDataId);
-                // 绑定签字事件
-                bindSignatureEvent(nextDataId);
-
-                // 关闭模态框并清空表单
-                addHazardModal.style.display = 'none';
-                document.getElementById('newTeam').value = '爆炸班';
-                document.getElementById('newProblem').value = '';
-                document.getElementById('newRequirement').value = '';
-                newPrePhoto.value = '';
-                newPrePhotoPreview.innerHTML = '';
-
-                nextDataId++;
-                alert('新增隐患成功！整改前照片已保存');
-            };
-            reader.readAsDataURL(prePhotoFile);
-        });
-
-        // -------------------------- 整改前照片编辑（仅管理员） --------------------------
-        function bindPrePhotoEditEvent(dataId) {
-            const editBtn = document.querySelector(`.admin-edit-photo[data-id="${dataId}"]`);
-            const prePhotoInput = document.getElementById(`prePhotoInput${dataId}`);
-            const prePhotoImg = document.getElementById(`prePhoto${dataId}`);
-
-            if (!editBtn || !prePhotoInput || !prePhotoImg) return;
-
-            // 点击编辑按钮打开文件选择框
-            editBtn.addEventListener('click', () => {
-                if (!isAdmin) return;
-                prePhotoInput.click();
-            });
-
-            // 更换整改前照片
-            prePhotoInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file || !file.type.startsWith('image/')) {
-                    alert('请选择有效的图片文件');
-                    prePhotoInput.value = '';
+        
+        // 提交整改记录
+        toStep3Btn.addEventListener('click', function() {
+            const selectedGroup = groupSelect.value;
+            const groupHazards = hazardData.filter(hazard => hazard.group === selectedGroup);
+            
+            // 验证所有必填项
+            let isValid = true;
+            groupHazards.forEach(hazard => {
+                const signatureInput = document.getElementById(`signature-${hazard.id}`);
+                const photoInput = document.getElementById(`photo-${hazard.id}`);
+                
+                if (!signatureInput.value.trim()) {
+                    alert(`请填写隐患 #${hazard.id.replace('hazard', '')} 的整改人姓名`);
+                    isValid = false;
                     return;
                 }
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    prePhotoImg.src = e.target.result;
-                    alert('整改前照片更换成功！');
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // 初始化已有行的整改前照片编辑事件
-        bindPrePhotoEditEvent(1);
-
-        // -------------------------- 整改后照片上传（普通用户/管理员） --------------------------
-        function bindPostPhotoUploadEvent(dataId) {
-            const uploadBtn = document.querySelector(`.upload-btn[data-id="${dataId}"]`);
-            const postPhotoInput = document.getElementById(`postPhotoInput${dataId}`);
-            const postPhotoPreview = document.getElementById(`postPhotoPreview${dataId}`);
-            const statusElement = document.getElementById(`status${dataId}`);
-
-            if (!uploadBtn || !postPhotoInput || !postPhotoPreview) return;
-
-            // 点击上传按钮
-            uploadBtn.addEventListener('click', () => {
-                postPhotoInput.click();
-            });
-
-            // 上传整改后照片
-            postPhotoInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file || !file.type.startsWith('image/')) {
-                    alert('请选择有效的图片文件');
-                    postPhotoInput.value = '';
+                
+                if (!photoInput.files || photoInput.files.length === 0) {
+                    alert(`请上传隐患 #${hazard.id.replace('hazard', '')} 的整改后照片`);
+                    isValid = false;
                     return;
                 }
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    postPhotoPreview.innerHTML = `<img src="${e.target.result}" class="pre-repair-photo">`;
-                    // 检查是否已签字
-                    const signatureDiv = document.getElementById(`signature${dataId}`);
-                    if (signatureDiv.children.length > 0) {
-                        statusElement.textContent = '已完成';
-                        statusElement.style.color = 'green';
-                        document.querySelector(`tr[data-id="${dataId}"]`).dataset.status = 'completed';
-                        alert('整改完成！状态已更新为「已完成」');
-                    } else {
-                        alert('整改后照片上传成功，请完成整改人签字！');
-                    }
-                };
-                reader.readAsDataURL(file);
             });
-        }
-
-        // 初始化已有行的整改后照片上传事件
-        bindPostPhotoUploadEvent(1);
-
-        // -------------------------- 整改人签字 --------------------------
-        function bindSignatureEvent(dataId) {
-            const signatureBtn = document.querySelector(`.signature-btn[data-id="${dataId}"]`);
-            const signatureDiv = document.getElementById(`signature${dataId}`);
-            const statusElement = document.getElementById(`status${dataId}`);
-
-            if (!signatureBtn || !signatureDiv) return;
-
-            signatureBtn.addEventListener('click', () => {
-                const userName = prompt('请输入你的姓名（整改人）：');
-                if (!userName) return;
-                // 模拟签字（实际项目可替换为手写签字插件）
-                signatureDiv.innerHTML = `<p>✅ 整改人：${userName}（签字时间：${new Date().toLocaleString()}）</p>`;
-                // 检查是否已上传整改后照片
-                const postPhotoPreview = document.getElementById(`postPhotoPreview${dataId}`);
-                if (postPhotoPreview.children.length > 0) {
-                    statusElement.textContent = '已完成';
-                    statusElement.style.color = 'green';
-                    document.querySelector(`tr[data-id="${dataId}"]`).dataset.status = 'completed';
-                    alert('签字成功！整改状态已更新为「已完成」');
-                } else {
-                    alert('签字成功，请上传整改后照片完成整改！');
-                }
-            });
-        }
-
-        // 初始化已有行的签字事件
-        bindSignatureEvent(1);
-
-        // -------------------------- 通用模态框关闭（点击外部） --------------------------
-        window.addEventListener('click', (e) => {
-            if (e.target === adminLoginModal) adminLoginModal.style.display = 'none';
-            if (e.target === addHazardModal) addHazardModal.style.display = 'none';
+            
+            if (!isValid) {
+                return;
+            }
+            
+            // 模拟提交成功
+            alert('整改记录验证通过，正在提交...');
+            
+            // 切换到成功页面
+            setTimeout(() => {
+                step2.classList.remove('active');
+                step3.classList.add('active');
+            }, 1000);
+        });
+        
+        // 重新填写
+        resetFormBtn.addEventListener('click', function() {
+            // 重置表单
+            groupSelect.value = '';
+            hazardList.innerHTML = '';
+            
+            // 回到第一步
+            step3.classList.remove('active');
+            step1.classList.add('active');
         });
     </script>
 </body>
-</html>
+</html>'''
+
+# 将HTML内容保存到文件
+with open('/mnt/隐患整改系统.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print("HTML隐患整改系统已创建完成！")
+print("\n系统功能说明：")
+print("1. 扫码后首先显示班组选择界面（包含放线班、炊事班、后勤组）")
+print("2. 选择班组后，自动展示该班组的所有隐患信息（B列：隐患位置，C列：隐患描述）")
+print("3. 每个隐患条目下方提供填写区域（E列：整改人(签字)，F列：整改后照片）")
+print("4. 支持照片预览功能，所有必填项验证")
+print("5. 提交成功后显示确认页面，可重新填写")
